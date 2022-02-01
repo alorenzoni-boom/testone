@@ -17,6 +17,35 @@ steps:
   - name: pipeline-info-remote
     image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-boom-init:1.1.0
 
+  - name: git-pr-check-candidate
+    image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-prcheck:develop
+    pull: always
+    settings:
+      valid_branch: promote/,fix/
+      manifest_type: txt
+      ssh_private_key:
+        from_secret: git_ssh_key
+    when:
+      event: 
+        - pull_request
+      branch:   
+        - candidate
+
+
+  - name: git-pr-check-master
+    image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-prcheck:develop
+    pull: always
+    settings:
+      valid_branch: release/,hotfix/
+      manifest_type: txt
+      ssh_private_key:
+        from_secret: git_ssh_key
+    when:
+      event: 
+        - pull_request
+      branch: 
+        - master
+
   - name: git-flow
     image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-gitwork:develop
     pull: always
@@ -28,6 +57,12 @@ steps:
         from_secret: git_password
       ssh_private_key:
         from_secret: git_ssh_key
+    when:
+      event: 
+        - push
+
+
+
 
 
 trigger:
@@ -36,6 +71,7 @@ trigger:
     - master
   event:    
     - push
+    - pull_request    
 
 node:
   aws: runner-1
