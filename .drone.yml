@@ -35,3 +35,6 @@ trigger:
     - candidate
   event:    
     - push
+
+node:
+  aws: local
