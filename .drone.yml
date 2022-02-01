@@ -33,6 +33,7 @@ steps:
 trigger:
   branch:
     - candidate
+    - master
   event:    
     - push
 
