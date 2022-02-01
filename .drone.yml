@@ -37,4 +37,4 @@ trigger:
     - push
 
 node:
-  aws: local
+  aws: runner-1
