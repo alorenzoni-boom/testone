@@ -1,7 +1,6 @@
----
 kind: pipeline
 type: docker
-name: candidate-merge
+name: pr-on-master
 
 concurrency:
   limit: 1
@@ -17,21 +16,6 @@ steps:
   - name: pipeline-info-remote
     image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-boom-init:1.1.0
 
-  - name: git-pr-check-candidate
-    image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-prcheck:develop
-    pull: always
-    settings:
-      valid_branch: promote/,fix/
-      manifest_type: txt
-      ssh_private_key:
-        from_secret: git_ssh_key
-    when:
-      event: 
-        - pull_request
-      branch:   
-        - candidate
-
-
   - name: git-pr-check-master
     image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-prcheck:develop
     pull: always
@@ -40,13 +24,35 @@ steps:
       manifest_type: txt
       ssh_private_key:
         from_secret: git_ssh_key
-    when:
-      event: 
-        - pull_request
-      branch: 
-        - master
 
-  - name: git-flow
+trigger:
+  branch:
+    - master
+  event:    
+    - pull_request    
+
+node:
+  aws: runner-1
+---
+kind: pipeline
+type: docker
+name: merge-on-master
+
+concurrency:
+  limit: 1
+
+environment:
+  ECR_REGISTRY: 289581841508.dkr.ecr.eu-west-1.amazonaws.com
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: pipeline-info-remote
+    image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-boom-init:1.1.0
+
+  - name: git-flow-master
     image: 289581841508.dkr.ecr.eu-west-1.amazonaws.com/drone-plugin-gitwork:develop
     pull: always
     settings:
@@ -57,21 +63,13 @@ steps:
         from_secret: git_password
       ssh_private_key:
         from_secret: git_ssh_key
-    when:
-      event: 
-        - push
-
-
-
-
 
 trigger:
   branch:
-    - candidate
     - master
   event:    
     - push
-    - pull_request    
 
 node:
   aws: runner-1
+---
